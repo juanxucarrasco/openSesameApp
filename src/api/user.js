@@ -1,24 +1,19 @@
 import AsyncStorage from "@react-native-community/async-storage";
+import { fetchApi } from "./config";
 
-const loginUser = async (email, password) => {
-  fetchApi(
+export const loginUser = async (email, password) => {
+  return fetchApi(
     `/api/users/login/`,
     {
       email,
       password
     },
     "POST"
-  )
-    .then(response => {
-      if (response.error) {
-        alert("Error al iniciar sesión, credenciales incorrectas.");
-      } else {
-        await AsyncStorage.setItem("token", response.token);
-        await AsyncStorage.setItem("user_data", JSON.stringify(response.data));
-      }
-    })
-    .catch(function (err) {
-      console.log(err);
-      //alert("error");
-    });
-}
+  ).then(async response => {
+    if (!response.error) {
+      await AsyncStorage.setItem("token", response.token);
+      await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
+    }
+    return response;
+  });
+};

@@ -5,24 +5,55 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  ScrollView
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
+import { loginUser } from "../../../api/user";
+import Toast from "@remobile/react-native-toast";
 
 export default class LoginPage extends Component {
-  loginProcess = () => {};
+  loginProcess = () => {
+    const { email, password } = this.state;
+    this.setState({ textLoad: "CARGANDO..." });
+    loginUser(email, password)
+      .then(res => {
+        if (res.error) {
+          Toast.showShortCenter("Credenciales incorrectas");
+          this.setState({ textLoad: "LOGIN" });
+        } else {
+          this.props.navigation.navigate("Home");
+        }
+      })
+      .catch(err => {
+        this.setState({ textLoad: "LOGIN" });
+        Toast.showShortCenter("Credenciales incorrectas");
+        console.log(err);
+      });
+  };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      email: "walter@unprg.edu.pe",
+      password: "12345678",
+      textLoad: "LOGIN"
+    };
+  }
+
   render() {
+    const { email, password, textLoad } = this.state;
     return (
-      <View
-        style={{
-          flex: 1
-        }}
+      <LinearGradient
+        style={styles.linearGradient}
+        start={{ x: 0.2, y: 0.2 }}
+        end={{ x: 1, y: 1 }}
+        colors={["#eef3ee", "#47cde6"]}
       >
-        <LinearGradient
-          style={styles.linearGradient}
-          start={{ x: 0.2, y: 0.2 }}
-          end={{ x: 1, y: 1 }}
-          colors={["#eef3ee", "#47cde6"]}
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.containerStyle}
         >
           <View
             style={{
@@ -36,8 +67,7 @@ export default class LoginPage extends Component {
                 height: 120,
                 marginTop: 80
               }}
-              resizeMode="stretch"
-              source={require("../assets/img/EPICI_recortado.png")}
+              source={require("../../../assets/img/EPICI_recortado.png")}
             />
           </View>
 
@@ -46,6 +76,8 @@ export default class LoginPage extends Component {
               <TextInput
                 placeholder="Ingrese Correo"
                 keyboardType="email-address"
+                value={email}
+                onChangeText={email => this.setState({ email })}
                 underlineColorAndroid={"#428AF8"}
               />
             </View>
@@ -53,11 +85,12 @@ export default class LoginPage extends Component {
               <TextInput
                 placeholder="Ingrese password"
                 mode="outlined"
+                value={password}
+                onChangeText={password => this.setState({ password })}
                 secureTextEntry={true}
                 underlineColorAndroid={"#428AF8"}
               />
             </View>
-
             <TouchableOpacity
               style={{
                 flexDirection: "row",
@@ -72,17 +105,26 @@ export default class LoginPage extends Component {
                 useAngle
                 style={styles.buttonLogin}
               >
-                <Text style={styles.buttonLogin__text}>LOGIN</Text>
+                <Text style={styles.buttonLogin__text}>{textLoad}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </LinearGradient>
-      </View>
+        </ScrollView>
+      </LinearGradient>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1
+    // backgroundColor: "trasnpar"
+  },
+  containerStyle: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center"
+  },
   linearGradient: {
     flex: 1,
     paddingHorizontal: 30
@@ -91,7 +133,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 30,
     padding: 20,
-    marginTop: 80
+    marginTop: 80,
+    marginBottom: 40
   },
   buttonLogin: {
     borderRadius: 30,
