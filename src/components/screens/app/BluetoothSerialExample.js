@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     elevation: 6,
-    backgroundColor: "#7B1FA2"
+    backgroundColor: "#005da2"
   },
   heading: {
     fontWeight: "bold",

@@ -28,7 +28,6 @@ export default class HomePage extends Component {
       bluetoothState: false
     };
     this.bluetooth = new BluetoothManager();
-    this.setData(null);
     BluetoothSerial.on("bluetoothEnabled", () =>
       Toast.showShortBottom("Bluetooth habilitado")
     );
@@ -50,6 +49,7 @@ export default class HomePage extends Component {
         user
       });
     });
+    this.setData(null);
   }
 
   setData = async device => {
@@ -60,12 +60,10 @@ export default class HomePage extends Component {
         id: await AsyncStorage.getItem("deviceId")
       };
     }
-    console.log("this.device", this.device);
     if (this.device.id) {
       this.bluetooth
         .connect(this.device)
         .then(res => {
-          console.log("Conectadooooooo");
           this.setState({
             stateConnection: true
           });
@@ -241,6 +239,11 @@ export default class HomePage extends Component {
               onPress={() => {
                 console.log("stateConnection", stateConnection);
                 if (stateConnection === false) this.toggleModal();
+                else {
+                  this.bluetooth.disconnect();
+                  AsyncStorage.setItem("deviceId", null);
+                  this.setData();
+                }
               }}
             >
               <LinearGradient
@@ -267,7 +270,7 @@ export default class HomePage extends Component {
                 style={{
                   flexDirection: "row",
                   justifyContent: "center",
-                  marginTop: 30
+                  marginTop: 10
                 }}
                 onPress={() => {
                   this.setData();
@@ -280,7 +283,7 @@ export default class HomePage extends Component {
                   useAngle
                   style={styles.buttonOpenDoor}
                 >
-                  <Text style={styles.buttonOpenDoor__text}>Cerrar</Text>
+                  <Text style={styles.buttonOpenDoor__text}>Connectar</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
