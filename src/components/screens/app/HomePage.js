@@ -39,7 +39,9 @@ export default class HomePage extends Component {
       if (this.device) {
         Toast.showShortBottom(`Conexión a ${this.device.id} perdida`);
       }
-      this.connected = true;
+      this.setState({
+        stateConnection: false
+      });
     });
   }
 
