@@ -25,7 +25,9 @@ export default class HomePage extends Component {
       user: null,
       stateConnection: false,
       showModal: false,
-      bluetoothState: false
+      bluetoothState: false,
+      connecting: false,
+      isEnabled: false
     };
     this.bluetooth = new BluetoothManager();
     BluetoothSerial.on("bluetoothEnabled", () =>
@@ -43,6 +45,10 @@ export default class HomePage extends Component {
         stateConnection: false
       });
     });
+
+    BluetoothSerial.requestEnable()
+      .then(res => this.setState({ isEnabled: true }))
+      .catch(err => Toast.showShortBottom(err.message));
   }
 
   componentDidMount() {
@@ -63,28 +69,41 @@ export default class HomePage extends Component {
       };
     }
     if (this.device.id) {
+      this.setState({
+        connecting: true
+      });
       this.bluetooth
         .connect(this.device)
         .then(res => {
           this.setState({
-            stateConnection: true
+            stateConnection: true,
+            connecting: false
           });
+          Toast.showShortBottom("Conectado");
         })
         .catch(err => {
           this.setState({
-            stateConnection: false
+            stateConnection: false,
+            connecting: false
           });
+          Toast.showShortBottom("No es posible conectarse al dispositivo");
         });
     } else {
       this.setState({
-        stateConnection: false
+        stateConnection: false,
+        connecting: false
       });
     }
   };
 
   openStateManager = () => {
     const { stateConnection } = this.state;
-    if (!stateConnection) this.props.navigation.navigate("Bluetooth");
+    if (!stateConnection)
+      this.props.navigation.navigate("Bluetooth", {
+        onBack: async () => {
+          await this.setData();
+        }
+      });
   };
 
   toggleModal = () => {
@@ -106,8 +125,15 @@ export default class HomePage extends Component {
   };
 
   render() {
-    const { user, stateConnection, showModal } = this.state;
+    const { user, stateConnection, showModal, connecting } = this.state;
     const name = user ? `${user.name} ${user.lastName}` : "";
+
+    let textButtonState = stateConnection ? "CONECTADO" : "DESCONECTADO";
+
+    if (connecting) {
+      textButtonState = "CONECTANDO...";
+    }
+
     return (
       <LinearGradient
         style={styles.linearGradient}
@@ -130,7 +156,8 @@ export default class HomePage extends Component {
               <Text
                 style={{
                   fontSize: 18,
-                  color: "black"
+                  color: "black",
+                  width: "70%"
                 }}
               >
                 {name}
@@ -138,7 +165,8 @@ export default class HomePage extends Component {
               <TouchableOpacity
                 style={{
                   flexDirection: "row",
-                  justifyContent: "center"
+                  justifyContent: "flex-end",
+                  width: "30%"
                 }}
                 onPress={this.logout}
               >
@@ -148,7 +176,7 @@ export default class HomePage extends Component {
                   useAngle
                   style={styles.buttonLogout}
                 >
-                  <Text style={styles.buttonLogout__text}>CERRAR SESIÓN</Text>
+                  <Text style={styles.buttonLogout__text}>SALIR</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -158,7 +186,7 @@ export default class HomePage extends Component {
                 fontSize: 40,
                 fontWeight: "bold",
                 textAlign: "center",
-                marginTop: 50,
+                marginTop: 20,
                 color: "black"
               }}
             >
@@ -197,7 +225,7 @@ export default class HomePage extends Component {
               style={{
                 flexDirection: "row",
                 justifyContent: "center",
-                marginTop: 30
+                marginTop: 80
               }}
               onPress={() => {
                 if (!stateConnection) {
@@ -222,7 +250,7 @@ export default class HomePage extends Component {
               justifyContent: "space-between",
               alignItems: "center",
               flexDirection: "row",
-              marginTop: 100
+              marginTop: 80
             }}
           >
             <Text
@@ -238,15 +266,7 @@ export default class HomePage extends Component {
                 flexDirection: "row",
                 justifyContent: "center"
               }}
-              onPress={() => {
-                console.log("stateConnection", stateConnection);
-                if (stateConnection === false) this.toggleModal();
-                else {
-                  this.bluetooth.disconnect();
-                  AsyncStorage.setItem("deviceId", null);
-                  this.setData();
-                }
-              }}
+              onPress={this.openStateManager}
             >
               <LinearGradient
                 colors={["#0092c7", "#0092c7"]}
@@ -254,9 +274,7 @@ export default class HomePage extends Component {
                 useAngle
                 style={styles.buttonState}
               >
-                <Text style={styles.buttonState__text}>
-                  {stateConnection ? "CONECTADO" : "DESCONECTADO"}
-                </Text>
+                <Text style={styles.buttonState__text}>{textButtonState}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -345,6 +363,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: "row",
     justifyContent: "center"
+  },
+  buttonBluetooth: {
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center"
   },
   buttonLogout__text: {
     color: "white",

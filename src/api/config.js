@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-community/async-storage";
 import fetchival from "fetchival";
 export const config = {
-  api: "https://opensesameepici.herokuapp.com"
+  api: "https://opensesameepici.herokuapp.com",
+  deviceId: '',
   // api: "http://staff360api.socialpressplugin.xyz:9000"
   // api: "http://localhost:9000"
 };

@@ -36,7 +36,7 @@ export default class LoginPage extends Component {
     super(props);
 
     this.state = {
-      email: "walter@unprg.edu.pe",
+      email: "giulianalecca@unprg.edu.pe",
       password: "12345678",
       textLoad: "LOGIN"
     };
@@ -63,13 +63,25 @@ export default class LoginPage extends Component {
           >
             <Image
               style={{
-                width: "90%",
+                width: "100%",
                 height: 120,
                 marginTop: 80
               }}
               source={require("../../../assets/img/EPICI_recortado.png")}
             />
           </View>
+
+          <Text
+            style={{
+              fontSize: 30,
+              fontWeight: "bold",
+              textAlign: "center",
+              marginTop: 20,
+              color: "black"
+            }}
+          >
+            LABORATORIO 01
+          </Text>
 
           <View style={styles.boxForm}>
             <View>
@@ -133,7 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 30,
     padding: 20,
-    marginTop: 80,
+    marginTop: 20,
     marginBottom: 40
   },
   buttonLogin: {

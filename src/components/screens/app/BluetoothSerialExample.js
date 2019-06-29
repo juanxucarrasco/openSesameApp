@@ -105,14 +105,14 @@ class BluetoothSerialExample extends Component {
       Toast.showShortBottom("Bluetooth disabled")
     );
     BluetoothSerial.on("error", err => console.log(`Error: ${err.message}`));
-    BluetoothSerial.on("connectionLost", () => {
+    /*BluetoothSerial.on("connectionLost", () => {
       if (this.state.device) {
         Toast.showShortBottom(
           `Connection to device ${this.state.device.name} has been lost`
         );
       }
       this.setState({ connected: false });
-    });
+    });*/
   }
 
   /**
@@ -202,6 +202,12 @@ class BluetoothSerialExample extends Component {
   connect = async device => {
     await AsyncStorage.setItem("deviceId", device.id);
     this.setState({ device, connected: true, connecting: false });
+    const { navigation } = this.props;
+    const onBack = navigation.getParam("onBack", null);
+    if (onBack) {
+      await onBack();
+    }
+    this.props.navigation.goBack();
     return;
     BluetoothSerial.connect(device.id)
       .then(async res => {
@@ -227,18 +233,7 @@ class BluetoothSerialExample extends Component {
     return (
       <View style={{ flex: 1 }}>
         <View style={styles.topBar}>
-          <Text style={styles.heading}>DISPOSITIVOS EMPAREJADOS</Text>
-          {Platform.OS === "android" ? (
-            <View style={styles.enableInfoWrapper}>
-              <Text style={{ fontSize: 12, color: "#FFFFFF" }}>
-                {this.state.isEnabled ? "disable" : "enable"}
-              </Text>
-              <Switch
-                onValueChange={this.toggleBluetooth.bind(this)}
-                value={this.state.isEnabled}
-              />
-            </View>
-          ) : null}
+          <Text style={styles.heading}>SELECCIONE UN DISPOSITIVO</Text>
         </View>
         <DeviceList
           showConnectedIcon={this.state.section === 0}
@@ -264,7 +259,7 @@ const styles = StyleSheet.create({
     height: 56,
     paddingHorizontal: 16,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     elevation: 6,
     backgroundColor: "#005da2"
