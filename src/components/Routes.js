@@ -19,6 +19,13 @@ const HomeStack = createStackNavigator(
         mode: "screen",
         header: null
       }
+    },
+    Bluetooth: {
+      screen: BluetoothSerialExample,
+      navigationOptions: {
+        mode: "screen",
+        header: null
+      }
     }
   },
   {

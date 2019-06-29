@@ -6,18 +6,42 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView
+  ScrollView,
+  Modal
 } from "react-native";
 
 import LinearGradient from "react-native-linear-gradient";
 import { clearStorage, getUserData } from "../../../api/config";
+import BluetoothManager from "../../../api/classes/BluetoothManager";
+import BluetoothSerialExample from "./BluetoothSerialExample";
+import AsyncStorage from "@react-native-community/async-storage";
+import Toast from "@remobile/react-native-toast";
+import BluetoothSerial from "react-native-bluetooth-serial";
 
 export default class HomePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      user: null
+      user: null,
+      stateConnection: false,
+      showModal: false,
+      bluetoothState: false
     };
+    this.bluetooth = new BluetoothManager();
+    this.setData(null);
+    BluetoothSerial.on("bluetoothEnabled", () =>
+      Toast.showShortBottom("Bluetooth habilitado")
+    );
+    BluetoothSerial.on("bluetoothDisabled", () =>
+      Toast.showShortBottom("Bluetooth deshabilitado")
+    );
+    BluetoothSerial.on("error", err => console.log(`Error: ${err.message}`));
+    BluetoothSerial.on("connectionLost", () => {
+      if (this.device) {
+        Toast.showShortBottom(`Conexión a ${this.device.id} perdida`);
+      }
+      this.connected = true;
+    });
   }
 
   componentDidMount() {
@@ -27,8 +51,62 @@ export default class HomePage extends Component {
       });
     });
   }
+
+  setData = async device => {
+    if (device) {
+      this.device = device;
+    } else {
+      this.device = {
+        id: await AsyncStorage.getItem("deviceId")
+      };
+    }
+    console.log("this.device", this.device);
+    if (this.device.id) {
+      this.bluetooth
+        .connect(this.device)
+        .then(res => {
+          console.log("Conectadooooooo");
+          this.setState({
+            stateConnection: true
+          });
+        })
+        .catch(err => {
+          this.setState({
+            stateConnection: false
+          });
+        });
+    } else {
+      this.setState({
+        stateConnection: false
+      });
+    }
+  };
+
+  openStateManager = () => {
+    const { stateConnection } = this.state;
+    if (!stateConnection) this.props.navigation.navigate("Bluetooth");
+  };
+
+  toggleModal = () => {
+    this.setState(state => {
+      return {
+        showModal: !state.showModal
+      };
+    });
+  };
+
+  sendMessage = async () => {
+    await this.bluetooth.write("A");
+  };
+
+  logout = () => {
+    AsyncStorage.clear();
+    this.bluetooth.disconnect();
+    this.props.navigation.navigate("Auth");
+  };
+
   render() {
-    const { user } = this.state;
+    const { user, stateConnection, showModal } = this.state;
     const name = user ? `${user.name} ${user.lastName}` : "";
     return (
       <LinearGradient
@@ -51,7 +129,7 @@ export default class HomePage extends Component {
             >
               <Text
                 style={{
-                  fontSize: 20,
+                  fontSize: 18,
                   color: "black"
                 }}
               >
@@ -62,7 +140,7 @@ export default class HomePage extends Component {
                   flexDirection: "row",
                   justifyContent: "center"
                 }}
-                onPress={this.loginProcess}
+                onPress={this.logout}
               >
                 <LinearGradient
                   colors={["#002368", "#002368"]}
@@ -121,7 +199,13 @@ export default class HomePage extends Component {
                 justifyContent: "center",
                 marginTop: 30
               }}
-              onPress={this.loginProcess}
+              onPress={() => {
+                if (!stateConnection) {
+                  Toast.showShortBottom("Conectese al dispositivo primero");
+                  return null;
+                }
+                this.sendMessage();
+              }}
             >
               <LinearGradient
                 colors={["#005da2", "#005da2"]}
@@ -133,6 +217,74 @@ export default class HomePage extends Component {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+          <View
+            style={{
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexDirection: "row",
+              marginTop: 100
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                color: "black"
+              }}
+            >
+              Estado
+            </Text>
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                justifyContent: "center"
+              }}
+              onPress={() => {
+                console.log("stateConnection", stateConnection);
+                if (stateConnection === false) this.toggleModal();
+              }}
+            >
+              <LinearGradient
+                colors={["#0092c7", "#0092c7"]}
+                angle={-45}
+                useAngle
+                style={styles.buttonState}
+              >
+                <Text style={styles.buttonState__text}>
+                  {stateConnection ? "CONECTADO" : "DESCONECTADO"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+          <Modal
+            animationType="fade"
+            onRequestClose={() => {}}
+            transparent
+            visible={showModal}
+          >
+            <View style={styles.wrapper}>
+              <BluetoothSerialExample bluetooth={this.bluetooth} />
+              <TouchableOpacity
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  marginTop: 30
+                }}
+                onPress={() => {
+                  this.setData();
+                  this.toggleModal();
+                }}
+              >
+                <LinearGradient
+                  colors={["#005da2", "#005da2"]}
+                  angle={-45}
+                  useAngle
+                  style={styles.buttonOpenDoor}
+                >
+                  <Text style={styles.buttonOpenDoor__text}>Cerrar</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </Modal>
         </ScrollView>
       </LinearGradient>
     );
@@ -143,6 +295,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1
     // backgroundColor: "trasnpar"
+  },
+  wrapper: {
+    zIndex: 9,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    top: 0,
+    left: 0
   },
   containerStyle: {
     flex: 1,
@@ -182,6 +343,17 @@ const styles = StyleSheet.create({
   },
   buttonLogout__text: {
     color: "white",
-    fontSize: 20
+    fontSize: 18
+  },
+  buttonState: {
+    borderRadius: 30,
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "center"
+  },
+  buttonState__text: {
+    color: "white",
+    fontSize: 18
   }
 });

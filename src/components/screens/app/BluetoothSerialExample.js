@@ -17,6 +17,7 @@ import {
 import Toast from "@remobile/react-native-toast";
 import BluetoothSerial from "react-native-bluetooth-serial";
 import { Buffer } from "buffer";
+import AsyncStorage from "@react-native-community/async-storage";
 global.Buffer = Buffer;
 const iconv = require("iconv-lite");
 
@@ -97,7 +98,6 @@ class BluetoothSerialExample extends Component {
         this.setState({ isEnabled, devices });
       }
     );
-
     BluetoothSerial.on("bluetoothEnabled", () =>
       Toast.showShortBottom("Bluetooth enabled")
     );
@@ -161,23 +161,6 @@ class BluetoothSerialExample extends Component {
    * [android]
    * Discover unpaired devices, works only in android
    */
-  discoverUnpaired() {
-    if (this.state.discovering) {
-      return false;
-    } else {
-      this.setState({ discovering: true });
-      BluetoothSerial.discoverUnpairedDevices()
-        .then(unpairedDevices => {
-          this.setState({ unpairedDevices, discovering: false });
-        })
-        .catch(err => Toast.showShortBottom(err.message));
-    }
-  }
-
-  /**
-   * [android]
-   * Discover unpaired devices, works only in android
-   */
   cancelDiscovery() {
     if (this.state.discovering) {
       BluetoothSerial.cancelDiscovery()
@@ -216,16 +199,17 @@ class BluetoothSerialExample extends Component {
    * Connect to bluetooth device by id
    * @param  {Object} device
    */
-  connect(device) {
-    this.setState({ connecting: true });
+  connect = async device => {
+    await AsyncStorage.setItem("deviceId", device.id);
+    this.setState({ device, connected: true, connecting: false });
+    return;
     BluetoothSerial.connect(device.id)
-      .then(res => {
+      .then(async res => {
         Toast.showShortBottom(`Connected to device ${device.name}`);
         this.setState({ device, connected: true, connecting: false });
       })
       .catch(err => Toast.showShortBottom(err.message));
-  }
-
+  };
   /**
    * Disconnect from bluetooth device
    */
@@ -235,78 +219,15 @@ class BluetoothSerialExample extends Component {
       .catch(err => Toast.showShortBottom(err.message));
   }
 
-  /**
-   * Toggle connection when we have active device
-   * @param  {Boolean} value
-   */
-  toggleConnect(value) {
-    if (value === true && this.state.device) {
-      this.connect(this.state.device);
-    } else {
-      this.disconnect();
-    }
-  }
-
-  /**
-   * Write message to device
-   * @param  {String} message
-   */
-  write(message) {
-    if (!this.state.connected) {
-      Toast.showShortBottom("You must connect to device first");
-    }
-
-    BluetoothSerial.write(message)
-      .then(res => {
-        Toast.showShortBottom("Successfuly wrote to device");
-        this.setState({ connected: true });
-      })
-      .catch(err => Toast.showShortBottom(err.message));
-  }
-
   onDevicePress(device) {
-    if (this.state.section === 0) {
-      this.connect(device);
-    } else {
-      this.pairDevice(device);
-    }
-  }
-
-  writePackets(message, packetSize = 64) {
-    const toWrite = iconv.encode(message, "cp852");
-    const writePromises = [];
-    const packetCount = Math.ceil(toWrite.length / packetSize);
-
-    for (var i = 0; i < packetCount; i++) {
-      const packet = new Buffer(packetSize);
-      packet.fill(" ");
-      toWrite.copy(packet, 0, i * packetSize, (i + 1) * packetSize);
-      writePromises.push(BluetoothSerial.write(packet));
-    }
-
-    Promise.all(writePromises).then(result => {
-      console.log("results", result);
-    });
+    this.connect(device);
   }
 
   render() {
-    const activeTabStyle = { borderBottomWidth: 6, borderColor: "#009688" };
     return (
       <View style={{ flex: 1 }}>
-        <TextInput
-          placeholder="Ingrese Correo"
-          keyboardType="email-address"
-          onChangeText={text => this.setState({ text })}
-          underlineColorAndroid={"#428AF8"}
-        />
-        <Button
-          title="Enviar mensaje"
-          onPress={() => {
-            this.writePackets(this.state.text);
-          }}
-        />
         <View style={styles.topBar}>
-          <Text style={styles.heading}>Bluetooth Serial Example</Text>
+          <Text style={styles.heading}>DISPOSITIVOS EMPAREJADOS</Text>
           {Platform.OS === "android" ? (
             <View style={styles.enableInfoWrapper}>
               <Text style={{ fontSize: 12, color: "#FFFFFF" }}>
@@ -319,76 +240,16 @@ class BluetoothSerialExample extends Component {
             </View>
           ) : null}
         </View>
-
-        {Platform.OS === "android" ? (
-          <View
-            style={[
-              styles.topBar,
-              { justifyContent: "center", paddingHorizontal: 0 }
-            ]}
-          >
-            <TouchableOpacity
-              style={[styles.tab, this.state.section === 0 && activeTabStyle]}
-              onPress={() => this.setState({ section: 0 })}
-            >
-              <Text style={{ fontSize: 14, color: "#FFFFFF" }}>
-                PAIRED DEVICES
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, this.state.section === 1 && activeTabStyle]}
-              onPress={() => this.setState({ section: 1 })}
-            >
-              <Text style={{ fontSize: 14, color: "#FFFFFF" }}>
-                UNPAIRED DEVICES
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-        {this.state.discovering && this.state.section === 1 ? (
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <ActivityIndicator style={{ marginBottom: 15 }} size={60} />
-            <Button
-              textStyle={{ color: "#FFFFFF" }}
-              style={styles.buttonRaised}
-              title="Cancel Discovery"
-              onPress={() => this.cancelDiscovery()}
-            />
-          </View>
-        ) : (
-          <DeviceList
-            showConnectedIcon={this.state.section === 0}
-            connectedId={this.state.device && this.state.device.id}
-            devices={
-              this.state.section === 0
-                ? this.state.devices
-                : this.state.unpairedDevices
-            }
-            onDevicePress={device => this.onDevicePress(device)}
-          />
-        )}
-        <View style={{ alignSelf: "flex-end", height: 52 }}>
-          <ScrollView horizontal contentContainerStyle={styles.fixedFooter}>
-            {Platform.OS === "android" && this.state.section === 1 ? (
-              <Button
-                title={
-                  this.state.discovering
-                    ? "... Discovering"
-                    : "Discover devices"
-                }
-                onPress={this.discoverUnpaired.bind(this)}
-              />
-            ) : null}
-            {Platform.OS === "android" && !this.state.isEnabled ? (
-              <Button
-                title="Request enable"
-                onPress={() => this.requestEnable()}
-              />
-            ) : null}
-          </ScrollView>
-        </View>
+        <DeviceList
+          showConnectedIcon={this.state.section === 0}
+          connectedId={this.state.device && this.state.device.id}
+          devices={
+            this.state.section === 0
+              ? this.state.devices
+              : this.state.unpairedDevices
+          }
+          onDevicePress={device => this.onDevicePress(device)}
+        />
       </View>
     );
   }

@@ -7,9 +7,10 @@
 import React, { Component } from "react";
 import { View, Image, Modal, StyleSheet } from "react-native";
 
-export default class Loader extends Component {
+export default class CustomModal extends Component {
   render() {
-    const { animationType, modalVisible } = this.props;
+    const { animationType, modalVisible, children } = this.props;
+    if (!modalVisible) return null;
     return (
       <Modal
         animationType={animationType}
@@ -17,14 +18,7 @@ export default class Loader extends Component {
         transparent
         visible={modalVisible}
       >
-        <View style={styles.wrapper}>
-          <View style={styles.loaderContainer}>
-            <Image
-              style={styles.loaderImage}
-              source={require("../../assets/img/greenLoader.gif")}
-            />
-          </View>
-        </View>
+        <View style={styles.wrapper}>{children}</View>
       </Modal>
     );
   }
