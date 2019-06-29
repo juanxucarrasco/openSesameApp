@@ -17,3 +17,7 @@ export const loginUser = async (email, password) => {
     return response;
   });
 };
+
+export const isValidateTime = async () => {
+  return fetchApi(`/api/users/data/isValidTime`);
+};

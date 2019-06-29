@@ -47,7 +47,6 @@ export default class BluetoothManager {
 
     return BluetoothSerial.write(message)
       .then(res => {
-        Toast.showShortBottom("Se envió señal");
         this.connected = true;
         return res;
       })

@@ -11,7 +11,8 @@ import {
 } from "react-native";
 
 import LinearGradient from "react-native-linear-gradient";
-import { clearStorage, getUserData } from "../../../api/config";
+import { clearStorage, getUserData, fetchApi } from "../../../api/config";
+import { isValidateTime } from "../../../api/user";
 import BluetoothManager from "../../../api/classes/BluetoothManager";
 import BluetoothSerialExample from "./BluetoothSerialExample";
 import AsyncStorage from "@react-native-community/async-storage";
@@ -27,7 +28,8 @@ export default class HomePage extends Component {
       showModal: false,
       bluetoothState: false,
       connecting: false,
-      isEnabled: false
+      isEnabled: false,
+      validating: false
     };
     this.bluetooth = new BluetoothManager();
     BluetoothSerial.on("bluetoothEnabled", () =>
@@ -115,7 +117,33 @@ export default class HomePage extends Component {
   };
 
   sendMessage = async () => {
-    await this.bluetooth.write("A");
+    const { stateConnection, user } = this.state;
+    if (!stateConnection) {
+      Toast.showShortBottom("Conectese al dispositivo primero");
+      return null;
+    }
+    if (user.role !== "administrator") {
+      this.setState({
+        validating: true
+      });
+      try {
+        const response = await isValidateTime();
+        this.setState({
+          validating: false
+        });
+        if (response.isValidTime === false) {
+          Toast.showShortBottom("No se encuentra en su horario establecido");
+          return;
+        }
+      } catch (error) {
+        this.setState({
+          validating: false
+        });
+        return;
+      }
+    }
+    await this.bluetooth.write("^");
+    Toast.showShortBottom("Puerta abierta");
   };
 
   logout = () => {
@@ -125,7 +153,13 @@ export default class HomePage extends Component {
   };
 
   render() {
-    const { user, stateConnection, showModal, connecting } = this.state;
+    const {
+      user,
+      stateConnection,
+      showModal,
+      connecting,
+      validating
+    } = this.state;
     const name = user ? `${user.name} ${user.lastName}` : "";
 
     let textButtonState = stateConnection ? "CONECTADO" : "DESCONECTADO";
@@ -227,13 +261,7 @@ export default class HomePage extends Component {
                 justifyContent: "center",
                 marginTop: 80
               }}
-              onPress={() => {
-                if (!stateConnection) {
-                  Toast.showShortBottom("Conectese al dispositivo primero");
-                  return null;
-                }
-                this.sendMessage();
-              }}
+              onPress={this.sendMessage}
             >
               <LinearGradient
                 colors={["#005da2", "#005da2"]}
@@ -241,7 +269,9 @@ export default class HomePage extends Component {
                 useAngle
                 style={styles.buttonOpenDoor}
               >
-                <Text style={styles.buttonOpenDoor__text}>ABRIR PUERTA</Text>
+                <Text style={styles.buttonOpenDoor__text}>
+                  {validating ? "VALIDANDO..." : "ABRIR PUERTA"}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -259,7 +289,7 @@ export default class HomePage extends Component {
                 color: "black"
               }}
             >
-              Estado
+              Conexión
             </Text>
             <TouchableOpacity
               style={{

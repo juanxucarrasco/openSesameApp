@@ -2,9 +2,9 @@ import AsyncStorage from "@react-native-community/async-storage";
 import fetchival from "fetchival";
 export const config = {
   api: "https://opensesameepici.herokuapp.com",
-  deviceId: '',
+  deviceId: ""
   // api: "http://staff360api.socialpressplugin.xyz:9000"
-  // api: "http://localhost:9000"
+  // api: "http://192.168.1.8:9000"
 };
 
 export const getUserData = async () => {
@@ -28,8 +28,8 @@ export const fetchApi = async (
     // console.log("TOKENNNNN: ", token);
     headers["Authorization"] = `Bearer ${token}`;
   }
-  // console.log("HEADERS", headers);
-  // console.log("URL", `${config.api}${endPoint}`);
+  /// console.log("HEADERS", headers);
+  /// console.log("URL", `${config.api}${endPoint}`);
   return fetchival(`${config.api}${endPoint}`, {
     headers: headers
   })[method.toLowerCase()](payload);
