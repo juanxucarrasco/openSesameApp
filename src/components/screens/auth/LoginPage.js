@@ -36,8 +36,8 @@ export default class LoginPage extends Component {
     super(props);
 
     this.state = {
-      email: "walter@unprg.edu.pe",
-      password: "12345678",
+      email: "",
+      password: "",
       textLoad: "LOGIN"
     };
   }

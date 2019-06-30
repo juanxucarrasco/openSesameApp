@@ -1,0 +1,4 @@
+- Quitar una linea en una clase de bluetooth serial para que pueda compilar
+
+- Compilacion:
+	Para que compile, se debe de cambiar todos los sdk compile a la versión actual del proyecto
