@@ -1,4 +1,7 @@
 - Quitar una linea en una clase de bluetooth serial para que pueda compilar
 
 - Compilacion:
-	Para que compile, se debe de cambiar todos los sdk compile a la versión actual del proyecto
+	Antes que compile ejecutar
+    #!: react-native bundle --platform android --dev false --entry-file index.js --bundle-output
+
+  Para que compile, se debe de cambiar todos los sdk compile a la versión actual del proyecto

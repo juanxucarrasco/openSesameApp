@@ -259,7 +259,7 @@ export default class HomePage extends Component {
               style={{
                 flexDirection: "row",
                 justifyContent: "center",
-                marginTop: 80
+                marginTop: 30
               }}
               onPress={this.sendMessage}
             >
@@ -280,7 +280,7 @@ export default class HomePage extends Component {
               justifyContent: "space-between",
               alignItems: "center",
               flexDirection: "row",
-              marginTop: 80
+              marginTop: 50
             }}
           >
             <Text

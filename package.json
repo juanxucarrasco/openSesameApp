@@ -7,7 +7,8 @@
     "test": "jest",
     "clean": "cd android && ./gradlew clean && ./gradlew cleanBuildCache",
     "superclean": "rm -rf node_modules/ /tmp/metro-bundler-cache-* /tmp/haste-map-react-native-packager-*",
-    "build": "cd android && ./gradlew assembleRelease"
+    "build": "cd android && ./gradlew assembleRelease",
+    "bundle": "cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.5.0",
