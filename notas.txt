@@ -2,6 +2,9 @@
 
 - Compilacion:
 	Antes que compile ejecutar
-    #!: react-native bundle --platform android --dev false --entry-file index.js --bundle-output
+    #!: react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle
 
   Para que compile, se debe de cambiar todos los sdk compile a la versión actual del proyecto
+
+  bluetooth serial
+  Toast module

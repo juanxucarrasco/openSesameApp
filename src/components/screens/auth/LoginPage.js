@@ -9,12 +9,23 @@ import {
   ScrollView
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-import { loginUser } from "../../../api/user";
 import Toast from "@remobile/react-native-toast";
+import AutoHeightImage from "react-native-auto-height-image";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp
+} from "react-native-responsive-screen";
 
+import { loginUser } from "../../../api/user";
 export default class LoginPage extends Component {
   loginProcess = () => {
     const { email, password } = this.state;
+
+    if (email.trim().length === 0 || password.trim().length === 0) {
+      Toast.showShortTop("Por favor ingrese correo y clave");
+      return;
+    }
+
     this.setState({ textLoad: "CARGANDO..." });
     loginUser(email, password)
       .then(res => {
@@ -55,28 +66,16 @@ export default class LoginPage extends Component {
           style={styles.container}
           contentContainerStyle={styles.containerStyle}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center"
-            }}
-          >
-            <Image
-              style={{
-                width: "100%",
-                height: 120,
-                marginTop: 80
-              }}
-              source={require("../../../assets/img/EPICI_recortado.png")}
-            />
-          </View>
-
+          <AutoHeightImage
+            width={wp("80%")}
+            source={require("../../../assets/img/EPICI_recortado.png")}
+          />
           <Text
             style={{
               fontSize: 30,
               fontWeight: "bold",
               textAlign: "center",
-              marginTop: 20,
+              marginTop: hp("10%"),
               color: "black"
             }}
           >
@@ -91,6 +90,10 @@ export default class LoginPage extends Component {
                 value={email}
                 onChangeText={email => this.setState({ email })}
                 underlineColorAndroid={"#428AF8"}
+                returnKeyType={"next"}
+                onSubmitEditing={() => {
+                  this.inputPassword.focus();
+                }}
               />
             </View>
             <View>
@@ -101,6 +104,12 @@ export default class LoginPage extends Component {
                 onChangeText={password => this.setState({ password })}
                 secureTextEntry={true}
                 underlineColorAndroid={"#428AF8"}
+                ref={ref => {
+                  this.inputPassword = ref;
+                }}
+                onSubmitEditing={() => {
+                  this.loginProcess();
+                }}
               />
             </View>
             <TouchableOpacity
@@ -129,24 +138,26 @@ export default class LoginPage extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-    // backgroundColor: "trasnpar"
+    // flex: 1
+    // backgroundColor: "red"
+    paddingVertical: 30
   },
   containerStyle: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "center"
+    // flex: 1,
+    //  flexDirection: "column",
+    // justifyContent: "center",
+    // alignItems: "center",
+    paddingHorizontal: 30
   },
   linearGradient: {
-    flex: 1,
-    paddingHorizontal: 30
+    flex: 1
   },
   boxForm: {
     backgroundColor: "white",
     borderRadius: 30,
     padding: 20,
     marginTop: 20,
-    marginBottom: 40
+    marginBottom: 80
   },
   buttonLogin: {
     borderRadius: 30,
@@ -154,7 +165,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: "row",
     justifyContent: "center",
-    width: "80%"
+    width: wp("70%")
   },
   buttonLogin__text: {
     color: "white",

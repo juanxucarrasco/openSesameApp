@@ -18,6 +18,11 @@ import BluetoothSerialExample from "./BluetoothSerialExample";
 import AsyncStorage from "@react-native-community/async-storage";
 import Toast from "@remobile/react-native-toast";
 import BluetoothSerial from "react-native-bluetooth-serial";
+import AutoHeightImage from "react-native-auto-height-image";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp
+} from "react-native-responsive-screen";
 
 export default class HomePage extends Component {
   constructor(props) {
@@ -25,7 +30,6 @@ export default class HomePage extends Component {
     this.state = {
       user: null,
       stateConnection: false,
-      showModal: false,
       bluetoothState: false,
       connecting: false,
       isEnabled: false,
@@ -108,14 +112,6 @@ export default class HomePage extends Component {
       });
   };
 
-  toggleModal = () => {
-    this.setState(state => {
-      return {
-        showModal: !state.showModal
-      };
-    });
-  };
-
   sendMessage = async () => {
     const { stateConnection, user } = this.state;
     if (!stateConnection) {
@@ -153,13 +149,7 @@ export default class HomePage extends Component {
   };
 
   render() {
-    const {
-      user,
-      stateConnection,
-      showModal,
-      connecting,
-      validating
-    } = this.state;
+    const { user, stateConnection, connecting, validating } = this.state;
     const name = user ? `${user.name} ${user.lastName}` : "";
 
     let textButtonState = stateConnection ? "CONECTADO" : "DESCONECTADO";
@@ -217,7 +207,7 @@ export default class HomePage extends Component {
 
             <Text
               style={{
-                fontSize: 40,
+                fontSize: wp("10%"),
                 fontWeight: "bold",
                 textAlign: "center",
                 marginTop: 20,
@@ -235,20 +225,12 @@ export default class HomePage extends Component {
             >
               <View
                 style={{
-                  width: "45%",
-                  height: 150,
                   justifyContent: "center",
                   flexDirection: "row"
                 }}
               >
-                <Image
-                  style={{
-                    flex: 1,
-                    alignSelf: "stretch",
-                    height: undefined,
-                    width: undefined
-                  }}
-                  resizeMode="stretch"
+                <AutoHeightImage
+                  width={wp("30%")}
                   source={require("../../../assets/img/candado_3.png")}
                 />
               </View>
@@ -280,7 +262,8 @@ export default class HomePage extends Component {
               justifyContent: "space-between",
               alignItems: "center",
               flexDirection: "row",
-              marginTop: 50
+              marginTop: 50,
+              marginBottom: 30
             }}
           >
             <Text
@@ -308,36 +291,6 @@ export default class HomePage extends Component {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-          <Modal
-            animationType="fade"
-            onRequestClose={() => {}}
-            transparent
-            visible={showModal}
-          >
-            <View style={styles.wrapper}>
-              <BluetoothSerialExample bluetooth={this.bluetooth} />
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  marginTop: 10
-                }}
-                onPress={() => {
-                  this.setData();
-                  this.toggleModal();
-                }}
-              >
-                <LinearGradient
-                  colors={["#005da2", "#005da2"]}
-                  angle={-45}
-                  useAngle
-                  style={styles.buttonOpenDoor}
-                >
-                  <Text style={styles.buttonOpenDoor__text}>Connectar</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </Modal>
         </ScrollView>
       </LinearGradient>
     );
@@ -346,8 +299,8 @@ export default class HomePage extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-    // backgroundColor: "trasnpar"
+    flex: 1,
+    paddingVertical: 30
   },
   wrapper: {
     zIndex: 9,
@@ -359,14 +312,10 @@ const styles = StyleSheet.create({
     left: 0
   },
   containerStyle: {
-    flex: 1,
-    paddingVertical: 30
-    /*flexDirection: "column",
-    justifyContent: "center"*/
+    paddingHorizontal: 30
   },
   linearGradient: {
-    flex: 1,
-    paddingHorizontal: 30
+    flex: 1
   },
   boxForm: {
     backgroundColor: "white",
@@ -392,7 +341,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 20,
     flexDirection: "row",
-    justifyContent: "center"
+    justifyContent: "center",
+    width: wp("30%")
   },
   buttonBluetooth: {
     borderRadius: 50,
